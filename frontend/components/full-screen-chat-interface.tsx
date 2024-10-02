@@ -15,7 +15,10 @@ export function FullScreenChatInterfaceComponent() {
 
   useEffect(() => {
     const ws = new WebSocket("ws://localhost:8080/");
-    setSocket(ws);
+    ws.onopen = () => {
+      setSocket(ws);
+      console.log("Connected to server");
+    };
 
     ws.onmessage = (event) => {
       setMessages((prev) => [...prev, JSON.parse(event.data)]);
@@ -37,7 +40,6 @@ export function FullScreenChatInterfaceComponent() {
   const messageInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    console.log("Number of messages:", messages.length);
     if (scrollAreaRef.current) {
       scrollAreaRef.current.scrollIntoView(false);
     }
