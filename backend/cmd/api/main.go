@@ -33,14 +33,19 @@ func handleWebSocket(w http.ResponseWriter, r *http.Request) {
 		var message Message
 		if err := conn.ReadJSON(&message); err != nil {
 			fmt.Println("[error/ReadMessage]: ", message)
-			return
+			break
 		}
 
 		fmt.Println("[message]: ", message)
 
-		if err := conn.WriteJSON(message); err != nil {
+		var echoMessage Message
+		echoMessage.ID = message.ID
+		echoMessage.Text = message.Text
+		echoMessage.Sender = "anonymous"
+
+		if err := conn.WriteJSON(echoMessage); err != nil {
 			fmt.Println("[error/WriteMessage]: ", err)
-			return
+			break
 		}
 	}
 }
