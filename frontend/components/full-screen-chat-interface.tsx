@@ -5,14 +5,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { SendIcon } from "lucide-react";
-
-interface Message {
-  id: number;
-  text: string;
-  sender: "user" | "sender";
-}
+import Message from "@/types/Message";
 
 export function FullScreenChatInterfaceComponent() {
+  const [userID, setUserID] = useState<string>("");
   const [socket, setSocket] = useState<WebSocket | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
 
@@ -29,6 +25,8 @@ export function FullScreenChatInterfaceComponent() {
     return () => {
       if (ws) {
         ws.close();
+      } else {
+        setSocket(null);
       }
     };
   }, []);
@@ -65,6 +63,11 @@ export function FullScreenChatInterfaceComponent() {
         <h2 className="text-2xl font-bold text-primary-foreground">
           Full Screen Chat Interface
         </h2>
+        <Input
+          value={userID}
+          onChange={(e) => setUserID(e.target.value)}
+          disabled={messages.length > 0}
+        />
       </div>
       <ScrollArea className="flex-grow p-4" ref={scrollAreaRef}>
         <div className="space-y-4 max-w-3xl mx-auto">
@@ -102,6 +105,7 @@ export function FullScreenChatInterfaceComponent() {
             value={inputMessage}
             onChange={(e) => setInputMessage(e.target.value)}
             className="flex-grow"
+            disabled={!userID}
           />
           <Button type="submit" size="icon">
             <SendIcon className="h-4 w-4" />
