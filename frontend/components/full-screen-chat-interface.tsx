@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { SendIcon } from "lucide-react";
 import Message from "@/types/Message";
+import { cn } from "@/lib/utils";
 
 export function FullScreenChatInterfaceComponent() {
   const [userID, setUserID] = useState<string>("");
@@ -19,7 +20,7 @@ export function FullScreenChatInterfaceComponent() {
     ws.onmessage = (event) => {
       setMessages((prev) => [...prev, event.data]);
 
-      console.log(event.data);
+      console.log(event);
     };
 
     return () => {
@@ -37,6 +38,7 @@ export function FullScreenChatInterfaceComponent() {
   useEffect(() => {
     if (scrollAreaRef.current) {
       scrollAreaRef.current.scrollTop = scrollAreaRef.current.scrollHeight;
+      scrollAreaRef.current.focus();
     }
   }, [messages]);
 
@@ -50,7 +52,7 @@ export function FullScreenChatInterfaceComponent() {
     };
 
     if (socket) {
-      socket.send(inputMessage);
+      socket.send(JSON.stringify(newMessage));
     }
 
     setMessages([...messages, newMessage]);
@@ -60,28 +62,38 @@ export function FullScreenChatInterfaceComponent() {
   return (
     <div className="flex flex-col h-screen w-screen bg-background text-foreground">
       <div className="bg-primary p-4 shadow-md">
-        <h2 className="text-2xl font-bold text-primary-foreground">
-          Full Screen Chat Interface
-        </h2>
+        <div className="flex items-center gap-4">
+          <h2 className="text-2xl font-bold text-primary-foreground">
+            Full Screen Chat Interface
+          </h2>
+          <div
+            className={cn(
+              "w-4 h-4 rounded-full",
+              socket ? "bg-green-500" : "bg-gray-500"
+            )}
+          ></div>
+        </div>
         <Input
           value={userID}
           onChange={(e) => setUserID(e.target.value)}
-          disabled={messages.length > 0}
+          disabled={messages.length > 0 || socket === null}
         />
       </div>
       <ScrollArea className="flex-grow p-4" ref={scrollAreaRef}>
         <div className="space-y-4 max-w-3xl mx-auto">
           {messages.map((message, i) => (
             <div
-              key={String(message.id + i)}
+              key={String(message.id + i + userID)}
               className={`flex ${
-                message.sender === "user" ? "justify-end" : "justify-start"
+                message.sender === userID ? "justify-end" : "justify-start"
               }`}
             >
               <div
                 className={`max-w-[70%] rounded-lg p-3 ${
-                  message.sender === "user"
-                    ? "bg-primary text-primary-foreground"
+                  message.sender === userID
+                    ? socket !== null
+                      ? "bg-primary text-primary-foreground"
+                      : "bg-primary text-primary-foreground opacity-50"
                     : "bg-secondary text-secondary-foreground"
                 }`}
               >
