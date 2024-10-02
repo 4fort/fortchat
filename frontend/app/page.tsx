@@ -1,5 +1,11 @@
+import { ChatInterfaceComponent } from "@/components/chat-interface";
+import { FullScreenChatInterfaceComponent } from "@/components/full-screen-chat-interface";
 import Image from "next/image";
 
 export default function Home() {
-  return <div className="text-zinc-300 bg-blue-500">Hello World</div>;
+  return (
+    <div>
+      <FullScreenChatInterfaceComponent />
+    </div>
+  );
 }
