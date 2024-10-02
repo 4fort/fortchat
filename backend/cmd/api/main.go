@@ -7,6 +7,12 @@ import (
 	"github.com/gorilla/websocket"
 )
 
+type Message struct {
+	ID     int    `json:"id"`
+	Text   string `json:"text"`
+	Sender string `json:"sender"`
+}
+
 var upgrader = websocket.Upgrader{
 	ReadBufferSize:  1024,
 	WriteBufferSize: 1024,
@@ -24,14 +30,15 @@ func handleWebSocket(w http.ResponseWriter, r *http.Request) {
 	defer conn.Close()
 
 	for {
-		messageType, data, err := conn.ReadMessage()
-		if err != nil {
-			fmt.Println("[error/ReadMessage]: ", err)
+		var message Message
+		if err := conn.ReadJSON(&message); err != nil {
+			fmt.Println("[error/ReadMessage]: ", message)
 			return
 		}
-		fmt.Println("Received message: ", string(data))
 
-		if err := conn.WriteMessage(messageType, data); err != nil {
+		fmt.Println("[message]: ", message)
+
+		if err := conn.WriteJSON(message); err != nil {
 			fmt.Println("[error/WriteMessage]: ", err)
 			return
 		}
