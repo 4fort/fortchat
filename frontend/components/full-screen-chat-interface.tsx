@@ -46,7 +46,7 @@ export function FullScreenChatInterfaceComponent() {
     const newMessage: Message = {
       id: messages.length + 1,
       text: inputMessage,
-      sender: "user",
+      sender: userID,
     };
 
     if (socket) {

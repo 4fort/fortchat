@@ -1,5 +1,5 @@
 export default interface Message {
   id: number;
   text: string;
-  sender: "user" | "sender";
+  sender: string;
 }
