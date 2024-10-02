@@ -18,9 +18,9 @@ export function FullScreenChatInterfaceComponent() {
     setSocket(ws);
 
     ws.onmessage = (event) => {
-      setMessages((prev) => [...prev, event.data]);
+      setMessages((prev) => [...prev, JSON.parse(event.data)]);
 
-      console.log(event);
+      console.log(event.data);
     };
 
     return () => {
@@ -34,11 +34,15 @@ export function FullScreenChatInterfaceComponent() {
 
   const [inputMessage, setInputMessage] = useState("");
   const scrollAreaRef = useRef<HTMLDivElement>(null);
+  const messageInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
+    console.log("Number of messages:", messages.length);
     if (scrollAreaRef.current) {
-      scrollAreaRef.current.scrollTop = scrollAreaRef.current.scrollHeight;
-      scrollAreaRef.current.focus();
+      scrollAreaRef.current.scrollIntoView(false);
+    }
+    if (messageInputRef.current) {
+      messageInputRef.current.focus();
     }
   }, [messages]);
 
@@ -79,11 +83,11 @@ export function FullScreenChatInterfaceComponent() {
           disabled={messages.length > 0 || socket === null}
         />
       </div>
-      <ScrollArea className="flex-grow p-4" ref={scrollAreaRef}>
-        <div className="space-y-4 max-w-3xl mx-auto">
+      <ScrollArea className="flex-grow p-4 scroll-smooth">
+        <div className="space-y-4 max-w-3xl mx-auto" ref={scrollAreaRef}>
           {messages.map((message, i) => (
             <div
-              key={String(message.id + i + userID)}
+              key={String(message.id + i) + message.sender + message.text}
               className={`flex ${
                 message.sender === userID ? "justify-end" : "justify-start"
               }`}
@@ -118,8 +122,13 @@ export function FullScreenChatInterfaceComponent() {
             onChange={(e) => setInputMessage(e.target.value)}
             className="flex-grow"
             disabled={!userID}
+            ref={messageInputRef}
           />
-          <Button type="submit" size="icon">
+          <Button
+            type="submit"
+            size="icon"
+            disabled={inputMessage.trim() === ""}
+          >
             <SendIcon className="h-4 w-4" />
             <span className="sr-only">Send</span>
           </Button>
