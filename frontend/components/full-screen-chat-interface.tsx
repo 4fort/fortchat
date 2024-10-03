@@ -94,16 +94,26 @@ export function FullScreenChatInterfaceComponent() {
                 message.sender === userID ? "justify-end" : "justify-start"
               }`}
             >
-              <div
-                className={`max-w-[70%] rounded-lg p-3 ${
-                  message.sender === userID
-                    ? socket !== null
-                      ? "bg-primary text-primary-foreground"
-                      : "bg-primary text-primary-foreground opacity-50"
-                    : "bg-secondary text-secondary-foreground"
-                }`}
-              >
-                {message.text}
+              <div className="flex flex-col max-w-[70%] ">
+                <span
+                  className={cn(
+                    "text-sm opacity-50",
+                    message.sender === userID ? "text-right" : "text-left"
+                  )}
+                >
+                  {message.sender}
+                </span>
+                <div
+                  className={`max-w-min rounded-xl p-3 ${
+                    message.sender === userID
+                      ? socket !== null
+                        ? "bg-primary text-primary-foreground"
+                        : "bg-primary text-primary-foreground opacity-50"
+                      : "bg-secondary text-secondary-foreground"
+                  }`}
+                >
+                  {message.text}
+                </div>
               </div>
             </div>
           ))}
