@@ -4,14 +4,10 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/4fort/fort-chat-backend/internal/lib"
+	"github.com/4fort/fort-chat-backend/internal/types"
 	"github.com/gorilla/websocket"
 )
-
-type Message struct {
-	ID     int    `json:"id"`
-	Text   string `json:"text"`
-	Sender string `json:"sender"`
-}
 
 var upgrader = websocket.Upgrader{
 	ReadBufferSize:  1024,
@@ -30,15 +26,16 @@ func handleWebSocket(w http.ResponseWriter, r *http.Request) {
 	defer conn.Close()
 
 	for {
-		var message Message
-		if err := conn.ReadJSON(&message); err != nil {
+		var message types.Message
+
+		if err := conn.ReadJSON(&message); err != nil && lib.IsStructEmpty(message) {
 			fmt.Println("[error/ReadMessage]: ", message)
 			break
 		}
 
 		fmt.Println("[message]: ", message)
 
-		var echoMessage Message
+		var echoMessage types.Message
 		echoMessage.ID = message.ID
 		echoMessage.Text = message.Text
 		echoMessage.Sender = "anonymous"
