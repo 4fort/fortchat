@@ -25,6 +25,8 @@ func handleWebSocket(w http.ResponseWriter, r *http.Request) {
 	}
 	defer conn.Close()
 
+	fmt.Println("[connection]: New client connected: ", r.RemoteAddr)
+
 	for {
 		var message types.Message
 
@@ -39,6 +41,7 @@ func handleWebSocket(w http.ResponseWriter, r *http.Request) {
 		echoMessage.ID = message.ID
 		echoMessage.Text = message.Text
 		echoMessage.Sender = "anonymous"
+		echoMessage.ConversationID = message.ConversationID
 
 		if err := conn.WriteJSON(echoMessage); err != nil {
 			fmt.Println("[error/WriteMessage]: ", err)
