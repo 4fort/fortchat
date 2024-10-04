@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { SendIcon } from "lucide-react";
+import { Loader2, SendIcon } from "lucide-react";
 import Message from "@/types/Message";
 import { cn } from "@/lib/utils";
 
@@ -12,28 +12,34 @@ export function FullScreenChatInterfaceComponent() {
   const [userID, setUserID] = useState<string>("");
   const [socket, setSocket] = useState<WebSocket | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
+  const [conversationID, setConversationID] = useState<string>("");
+  const [connecting, setConnecting] = useState<boolean>(false);
 
   useEffect(() => {
-    const ws = new WebSocket("ws://localhost:8080/");
-    ws.onopen = () => {
-      setSocket(ws);
-      console.log("Connected to server");
-    };
+    if (socket) {
+      socket.onmessage = (event) => {
+        // setMessages((prev) => [...prev, JSON.parse(event.data)]);
+        setMessages((prev) => {
+          const newMessage = JSON.parse(event.data);
+          const filteredMessages = prev.filter(
+            (message) => message.id !== newMessage.id
+          );
 
-    ws.onmessage = (event) => {
-      setMessages((prev) => [...prev, JSON.parse(event.data)]);
+          return [...filteredMessages, newMessage];
+        });
 
-      console.log(event.data);
-    };
+        console.log(event.data);
+      };
 
-    return () => {
-      if (ws) {
-        ws.close();
-      } else {
-        setSocket(null);
-      }
-    };
-  }, []);
+      return () => {
+        if (socket) {
+          socket.close();
+        } else {
+          setSocket(null);
+        }
+      };
+    }
+  }, [socket]);
 
   const [inputMessage, setInputMessage] = useState("");
   const scrollAreaRef = useRef<HTMLDivElement>(null);
@@ -48,13 +54,54 @@ export function FullScreenChatInterfaceComponent() {
     }
   }, [messages]);
 
+  const handleConnectWebSocket = () => {
+    if (socket) {
+      socket.close(1000, "Closed by user");
+      setSocket(null);
+      return;
+    }
+
+    setConnecting(true);
+
+    try {
+      const ws = new WebSocket(`ws://${process.env.NEXT_PUBLIC_API_URL}:8080/`);
+
+      ws.onopen = () => {
+        console.log("connected");
+
+        ws.send(JSON.stringify({ userID, conversationID }));
+        setSocket(ws);
+        setConnecting(false);
+      };
+
+      ws.onclose = () => {
+        console.log("disconnected");
+        setSocket(null);
+        setConnecting(false);
+      };
+
+      ws.onerror = (error) => {
+        console.error(error);
+        setSocket(null);
+        setConnecting(false);
+        throw error;
+      };
+    } catch (error) {
+      console.error(error);
+      setConnecting(false);
+      throw error;
+    }
+  };
+
   const handleSendMessage = () => {
     if (inputMessage.trim() === "") return;
+    if (conversationID === null) return;
 
     const newMessage: Message = {
-      id: messages.length + 1,
+      id: crypto.getRandomValues(new Uint32Array(1))[0],
       text: inputMessage,
       sender: userID,
+      conversationID,
     };
 
     if (socket) {
@@ -70,7 +117,7 @@ export function FullScreenChatInterfaceComponent() {
       <div className="bg-primary p-4 shadow-md">
         <div className="flex items-center gap-4">
           <h2 className="text-2xl font-bold text-primary-foreground">
-            Full Screen Chat Interface
+            FortChat
           </h2>
           <div
             className={cn(
@@ -79,44 +126,62 @@ export function FullScreenChatInterfaceComponent() {
             )}
           ></div>
         </div>
-        <Input
-          value={userID}
-          onChange={(e) => setUserID(e.target.value)}
-          disabled={messages.length > 0 || socket === null}
-        />
+        <div className="flex gap-4">
+          <Input
+            value={userID}
+            onChange={(e) => setUserID(e.target.value)}
+            disabled={messages.length > 0 || socket !== null}
+            placeholder="User ID"
+          />
+          <Input
+            value={conversationID}
+            onChange={(e) => setConversationID(e.target.value)}
+            disabled={messages.length > 0 || socket !== null}
+            placeholder="Conversation ID"
+          />
+          <Button
+            variant="outline"
+            disabled={userID === "" || conversationID === "" || connecting}
+            onClick={handleConnectWebSocket}
+          >
+            {connecting && <Loader2 className="mr-2w-4 h-4 animate-spin" />}
+            {socket === null ? "Connect" : "Disconnect"}
+          </Button>
+        </div>
       </div>
       <ScrollArea className="flex-grow p-4 scroll-smooth">
         <div className="space-y-4 max-w-3xl mx-auto" ref={scrollAreaRef}>
-          {messages.map((message, i) => (
-            <div
-              key={String(message.id + i) + message.sender + message.text}
-              className={`flex ${
-                message.sender === userID ? "justify-end" : "justify-start"
-              }`}
-            >
-              <div className="flex flex-col max-w-[70%] ">
-                <span
-                  className={cn(
-                    "text-sm opacity-50",
-                    message.sender === userID ? "text-right" : "text-left"
-                  )}
-                >
-                  {message.sender}
-                </span>
+          {messages.map(
+            (message, i) =>
+              message.conversationID === conversationID && (
                 <div
-                  className={`max-w-min rounded-xl p-3 ${
-                    message.sender === userID
-                      ? socket !== null
-                        ? "bg-primary text-primary-foreground"
-                        : "bg-primary text-primary-foreground opacity-50"
-                      : "bg-secondary text-secondary-foreground"
+                  key={String(message.id + i) + message.sender + message.text}
+                  className={`flex ${
+                    message.sender === userID ? "justify-end" : "justify-start"
                   }`}
                 >
-                  {message.text}
+                  <div className="flex flex-col max-w-[70%] ">
+                    <span
+                      className={cn(
+                        "text-sm opacity-50",
+                        message.sender === userID ? "text-right" : "text-left"
+                      )}
+                    >
+                      {message.sender}
+                    </span>
+                    <div
+                      className={`max-w-full min-w-fit rounded-xl p-3 ${
+                        message.sender === userID
+                          ? "bg-primary text-primary-foreground"
+                          : "bg-secondary text-secondary-foreground"
+                      }`}
+                    >
+                      {message.text}
+                    </div>
+                  </div>
                 </div>
-              </div>
-            </div>
-          ))}
+              )
+          )}
         </div>
       </ScrollArea>
       <div className="p-4 border-t bg-background">
@@ -133,7 +198,7 @@ export function FullScreenChatInterfaceComponent() {
             value={inputMessage}
             onChange={(e) => setInputMessage(e.target.value)}
             className="flex-grow"
-            disabled={!userID}
+            disabled={!userID || !conversationID || socket === null}
             ref={messageInputRef}
           />
           <Button
