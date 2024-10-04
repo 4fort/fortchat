@@ -35,6 +35,11 @@ func HandleWebSocket(w http.ResponseWriter, r *http.Request) {
 	}
 
 	fmt.Printf("[connection]: New client connected: { RemoteAddr: %s, converstaionID: %s }\n", r.RemoteAddr, initialMessage.ConversationID)
+	initialMessage.ID = getRandomID()
+	initialMessage.Text = getRandomJoinPhrase(initialMessage.Sender)
+	initialMessage.Sender = "system"
+
+	broadcastMessage(initialMessage)
 
 	mutex.Lock()
 	conversations[initialMessage.ConversationID] = append(conversations[initialMessage.ConversationID], conn)
@@ -45,7 +50,12 @@ func HandleWebSocket(w http.ResponseWriter, r *http.Request) {
 
 		if err := conn.ReadJSON(&message); err != nil {
 			if websocket.IsCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure, 1000) {
-				fmt.Println("[connection]: Client disconnected: ", r.RemoteAddr)
+				fmt.Println("[connection]: Client disconnected: ", r.RemoteAddr, message)
+
+				// message.ID = getRandomID()
+				// message.Text = getRandomLeavePhrase(message.Sender)
+				// message.Sender = "system"
+				// broadcastMessage(message)
 			} else {
 				fmt.Println("[error/ReadJSON]: ", err)
 			}
@@ -56,6 +66,6 @@ func HandleWebSocket(w http.ResponseWriter, r *http.Request) {
 		fmt.Println("[", conversations[initialMessage.ConversationID], "]:")
 		fmt.Println("[message]: ", message)
 
-		boadcastMessage(message)
+		broadcastMessage(message)
 	}
 }
