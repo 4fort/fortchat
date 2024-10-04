@@ -69,7 +69,7 @@ export function FullScreenChatInterfaceComponent() {
       ws.onopen = () => {
         console.log("connected");
 
-        ws.send(JSON.stringify({ userID, conversationID }));
+        ws.send(JSON.stringify({ sender: userID, conversationID }));
         setSocket(ws);
         setConnecting(false);
       };
@@ -151,36 +151,45 @@ export function FullScreenChatInterfaceComponent() {
       </div>
       <ScrollArea className="flex-grow p-4 scroll-smooth">
         <div className="space-y-4 max-w-3xl mx-auto" ref={scrollAreaRef}>
-          {messages.map(
-            (message, i) =>
-              message.conversationID === conversationID && (
-                <div
-                  key={String(message.id + i) + message.sender + message.text}
-                  className={`flex ${
-                    message.sender === userID ? "justify-end" : "justify-start"
-                  }`}
-                >
-                  <div className="flex flex-col max-w-[70%] ">
-                    <span
-                      className={cn(
-                        "text-sm opacity-50",
-                        message.sender === userID ? "text-right" : "text-left"
-                      )}
-                    >
-                      {message.sender}
-                    </span>
-                    <div
-                      className={`max-w-full min-w-fit rounded-xl p-3 ${
-                        message.sender === userID
-                          ? "bg-primary text-primary-foreground"
-                          : "bg-secondary text-secondary-foreground"
-                      }`}
-                    >
-                      {message.text}
-                    </div>
+          {messages.map((message, i) =>
+            message.conversationID === conversationID &&
+            message.sender !== "system" ? (
+              <div
+                key={String(message.id + i) + message.sender + message.text}
+                className={`flex ${
+                  message.sender === userID ? "justify-end" : "justify-start"
+                }`}
+              >
+                <div className="flex flex-col max-w-[70%] ">
+                  <span
+                    className={cn(
+                      "text-sm opacity-50",
+                      message.sender === userID ? "text-right" : "text-left"
+                    )}
+                  >
+                    {message.sender}
+                  </span>
+                  <div
+                    className={`max-w-full min-w-fit rounded-xl p-3 ${
+                      message.sender === userID
+                        ? "bg-primary text-primary-foreground"
+                        : "bg-secondary text-secondary-foreground"
+                    }`}
+                  >
+                    {message.text}
                   </div>
                 </div>
-              )
+              </div>
+            ) : (
+              <div
+                key={String(message.id + i) + message.sender + message.text}
+                className="flex justify-center"
+              >
+                <div className={"max-w-full min-w-fit opacity-50"}>
+                  {message.text}
+                </div>
+              </div>
+            )
           )}
         </div>
       </ScrollArea>
