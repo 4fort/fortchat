@@ -3,4 +3,5 @@ export default interface Message {
   text: string;
   sender: string;
   conversationID: string;
+  createdAt: string;
 }

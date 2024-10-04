@@ -1,12 +1,14 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Loader2, SendIcon } from "lucide-react";
 import Message from "@/types/Message";
 import { cn } from "@/lib/utils";
+import ChatBubble from "./chat-interface/chat-bubble";
 
 export function FullScreenChatInterfaceComponent() {
   const [userID, setUserID] = useState<string>("");
@@ -28,7 +30,7 @@ export function FullScreenChatInterfaceComponent() {
           return [...filteredMessages, newMessage];
         });
 
-        console.log(event.data);
+        // console.log(event.data);
       };
 
       return () => {
@@ -102,6 +104,7 @@ export function FullScreenChatInterfaceComponent() {
       text: inputMessage,
       sender: userID,
       conversationID,
+      createdAt: new Date().toISOString(),
     };
 
     if (socket) {
@@ -130,13 +133,13 @@ export function FullScreenChatInterfaceComponent() {
           <Input
             value={userID}
             onChange={(e) => setUserID(e.target.value)}
-            disabled={messages.length > 0 || socket !== null}
+            disabled={socket !== null}
             placeholder="User ID"
           />
           <Input
             value={conversationID}
             onChange={(e) => setConversationID(e.target.value)}
-            disabled={messages.length > 0 || socket !== null}
+            disabled={socket !== null}
             placeholder="Conversation ID"
           />
           <Button
@@ -150,36 +153,24 @@ export function FullScreenChatInterfaceComponent() {
         </div>
       </div>
       <ScrollArea className="flex-grow p-4 scroll-smooth">
-        <div className="space-y-4 max-w-3xl mx-auto" ref={scrollAreaRef}>
+        <div className="max-w-3xl mx-auto" ref={scrollAreaRef}>
           {messages.map((message, i) =>
             message.conversationID === conversationID &&
             message.sender !== "system" ? (
-              <div
+              <ChatBubble
                 key={String(message.id + i) + message.sender + message.text}
-                className={`flex ${
-                  message.sender === userID ? "justify-end" : "justify-start"
-                }`}
-              >
-                <div className="flex flex-col max-w-[70%] ">
-                  <span
-                    className={cn(
-                      "text-sm opacity-50",
-                      message.sender === userID ? "text-right" : "text-left"
-                    )}
-                  >
-                    {message.sender}
-                  </span>
-                  <div
-                    className={`max-w-full min-w-fit rounded-xl p-3 ${
-                      message.sender === userID
-                        ? "bg-primary text-primary-foreground"
-                        : "bg-secondary text-secondary-foreground"
-                    }`}
-                  >
-                    {message.text}
-                  </div>
-                </div>
-              </div>
+                message={message}
+                userID={userID}
+                isLastMessage={i === messages.length - 1}
+                scrollAreaRef={scrollAreaRef}
+                prevMsgSeconds={
+                  i === 0
+                    ? 0
+                    : new Date(
+                        messages[messages.length - 2].createdAt
+                      ).getSeconds()
+                }
+              />
             ) : (
               <div
                 key={String(message.id + i) + message.sender + message.text}

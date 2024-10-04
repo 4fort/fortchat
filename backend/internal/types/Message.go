@@ -5,4 +5,5 @@ type Message struct {
 	Text           string `json:"text"`
 	Sender         string `json:"sender"`
 	ConversationID string `json:"conversationID"`
+	CreatedAt      string `json:"createdAt"`
 }
