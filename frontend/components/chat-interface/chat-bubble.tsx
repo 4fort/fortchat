@@ -16,6 +16,8 @@ type ChatBubbleProps = {
   className?: string;
 };
 
+const CHAT_BUBBLE_GROUP_DELAY = 5000;
+
 function ChatBubble({
   message,
   userID,
@@ -40,7 +42,7 @@ function ChatBubble({
     if (prevMessage && isMessageFromSender(prevMessage)) {
       const thisMessageTime = new Date(message.createdAt).getTime();
       const prevMessageTime = new Date(prevMessage.createdAt).getTime();
-      return thisMessageTime - prevMessageTime <= 5000;
+      return thisMessageTime - prevMessageTime <= CHAT_BUBBLE_GROUP_DELAY;
     }
   };
 
@@ -48,7 +50,7 @@ function ChatBubble({
     if (nextMessage && isMessageFromSender(nextMessage)) {
       const thisMessageTime = new Date(message.createdAt).getTime();
       const nextMessageTime = new Date(nextMessage.createdAt).getTime();
-      return nextMessageTime - thisMessageTime <= 5000;
+      return nextMessageTime - thisMessageTime <= CHAT_BUBBLE_GROUP_DELAY;
     }
     return false;
   };
