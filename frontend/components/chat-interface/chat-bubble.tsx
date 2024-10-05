@@ -89,7 +89,7 @@ function ChatBubble({
             </span>
           )}
           <div
-            className={`max-w-full min-w-fit w-fit break-all rounded-3xl py-2 px-3 text-sm ${
+            className={`max-w-full min-w-fit w-fit break-all rounded-3xl py-2 px-3 ${
               message.sender === userID
                 ? "bg-primary text-primary-foreground"
                 : "bg-zinc-300 text-secondary-foreground"
