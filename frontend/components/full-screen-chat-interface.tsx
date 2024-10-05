@@ -71,6 +71,10 @@ export function FullScreenChatInterfaceComponent() {
       ws.onopen = () => {
         console.log("connected");
 
+        setMessages(
+          messages[0]?.conversationID === conversationID ? messages : []
+        );
+
         ws.send(JSON.stringify({ sender: userID, conversationID }));
         setSocket(ws);
         setConnecting(false);
@@ -167,14 +171,18 @@ export function FullScreenChatInterfaceComponent() {
                 nextMessage={i < messages.length - 1 ? messages[i + 1] : null}
               />
             ) : (
-              <div
-                key={String(message.id + i) + message.sender + message.text}
-                className="flex justify-center"
-              >
-                <div className={"max-w-full min-w-fit opacity-50 text-center"}>
-                  {message.text}
+              message.sender === "system" && (
+                <div
+                  key={String(message.id + i) + message.sender + message.text}
+                  className="flex justify-center"
+                >
+                  <div
+                    className={"max-w-full min-w-fit opacity-50 text-center"}
+                  >
+                    {message.text}
+                  </div>
                 </div>
-              </div>
+              )
             )
           )}
         </div>

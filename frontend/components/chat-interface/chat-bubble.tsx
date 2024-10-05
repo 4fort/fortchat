@@ -13,6 +13,7 @@ type ChatBubbleProps = {
   prevMessage: Message | null;
   nextMessage: Message | null;
   scrollAreaRef: React.RefObject<HTMLDivElement>;
+  className?: string;
 };
 
 function ChatBubble({
@@ -22,6 +23,7 @@ function ChatBubble({
   prevMessage,
   nextMessage,
   scrollAreaRef,
+  className,
 }: ChatBubbleProps) {
   const [isDateShown, setIsDateShown] = useState(isLastMessage);
 
@@ -68,7 +70,7 @@ function ChatBubble({
         transition={{ duration: 0.2, ease: "easeInOut" }}
         className={`flex ${
           message.sender === userID ? "justify-end" : "justify-start"
-        } ${!isMessageRecent() && "mt-4"}`}
+        } ${!isMessageRecent() && "mt-4"} ${className}`}
       >
         <div
           className={`flex flex-col max-w-[70%] ${
