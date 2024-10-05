@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 
 import Message from "@/types/Message";
 import { cn, formatDate } from "@/lib/utils";
+import useChatBubble from "@/hooks/useChatBubble";
 
 type ChatBubbleProps = {
   message: Message;
@@ -27,33 +28,8 @@ function ChatBubble({
   scrollAreaRef,
   className,
 }: ChatBubbleProps) {
-  const [isDateShown, setIsDateShown] = useState(isLastMessage);
-
-  // console.log(isSenderShown, isSenderPrevMsgRecent, prevMessage);
-
-  const isMessageFromSender = (_message: Message) => {
-    if (_message) {
-      return _message.sender === message.sender;
-    }
-    return false;
-  };
-
-  const isMessageRecent = () => {
-    if (prevMessage && isMessageFromSender(prevMessage)) {
-      const thisMessageTime = new Date(message.createdAt).getTime();
-      const prevMessageTime = new Date(prevMessage.createdAt).getTime();
-      return thisMessageTime - prevMessageTime <= CHAT_BUBBLE_GROUP_DELAY;
-    }
-  };
-
-  const isNextMessageRecent = () => {
-    if (nextMessage && isMessageFromSender(nextMessage)) {
-      const thisMessageTime = new Date(message.createdAt).getTime();
-      const nextMessageTime = new Date(nextMessage.createdAt).getTime();
-      return nextMessageTime - thisMessageTime <= CHAT_BUBBLE_GROUP_DELAY;
-    }
-    return false;
-  };
+  const { isDateShown, setIsDateShown, isMessageRecent, isNextMessageRecent } =
+    useChatBubble();
 
   useEffect(() => {
     setIsDateShown(isLastMessage);
@@ -72,7 +48,10 @@ function ChatBubble({
         transition={{ duration: 0.2, ease: "easeInOut" }}
         className={`flex ${
           message.sender === userID ? "justify-end" : "justify-start"
-        } ${!isMessageRecent() && "mt-4"} ${className}`}
+        } ${
+          !isMessageRecent(CHAT_BUBBLE_GROUP_DELAY, message, prevMessage!) &&
+          "mt-4"
+        } ${className}`}
       >
         <div
           className={`flex flex-col max-w-[70%] ${
@@ -82,16 +61,21 @@ function ChatBubble({
             isLastMessage ? setIsDateShown(true) : setIsDateShown(!isDateShown);
           }}
         >
-          {message.sender !== userID && !isMessageRecent() && (
-            <span
-              className={cn(
-                "text-sm opacity-50",
-                message.sender === userID ? "text-right" : "text-left"
-              )}
-            >
-              {message.sender}
-            </span>
-          )}
+          {message.sender !== userID &&
+            !isMessageRecent(
+              CHAT_BUBBLE_GROUP_DELAY,
+              message,
+              prevMessage!
+            ) && (
+              <span
+                className={cn(
+                  "text-sm opacity-50",
+                  message.sender === userID ? "text-right" : "text-left"
+                )}
+              >
+                {message.sender}
+              </span>
+            )}
           <div
             className={`max-w-full min-w-fit w-fit break-all rounded-3xl py-2 px-3 ${
               message.sender === userID
@@ -100,23 +84,43 @@ function ChatBubble({
             } ${
               message.sender === userID
                 ? // SENDERS
-                  isMessageRecent()
+                  isMessageRecent(
+                    CHAT_BUBBLE_GROUP_DELAY,
+                    message,
+                    prevMessage!
+                  )
                   ? nextMessage
-                    ? isNextMessageRecent()
+                    ? isNextMessageRecent(
+                        CHAT_BUBBLE_GROUP_DELAY,
+                        message,
+                        nextMessage
+                      )
                       ? "rounded-tr-lg rounded-br-lg"
                       : "rounded-tr-lg"
                     : "rounded-tr-lg"
-                  : isNextMessageRecent()
+                  : isNextMessageRecent(
+                      CHAT_BUBBLE_GROUP_DELAY,
+                      message,
+                      nextMessage!
+                    )
                   ? "rounded-br-lg"
                   : null
                 : // OTHERS
-                isMessageRecent()
+                isMessageRecent(CHAT_BUBBLE_GROUP_DELAY, message, prevMessage!)
                 ? nextMessage
-                  ? isNextMessageRecent()
+                  ? isNextMessageRecent(
+                      CHAT_BUBBLE_GROUP_DELAY,
+                      message,
+                      nextMessage
+                    )
                     ? "rounded-tl-lg rounded-bl-lg"
                     : "rounded-tl-lg"
                   : "rounded-tl-lg"
-                : isNextMessageRecent()
+                : isNextMessageRecent(
+                    CHAT_BUBBLE_GROUP_DELAY,
+                    message,
+                    nextMessage!
+                  )
                 ? "rounded-bl-lg"
                 : null
             }`}
