@@ -89,7 +89,7 @@ function ChatBubble({
             </span>
           )}
           <div
-            className={`max-w-full min-w-fit w-fit break-all rounded-2xl p-3 ${
+            className={`max-w-full min-w-fit w-fit break-all rounded-3xl py-2 px-3 text-sm ${
               message.sender === userID
                 ? "bg-primary text-primary-foreground"
                 : "bg-zinc-300 text-secondary-foreground"
@@ -99,21 +99,21 @@ function ChatBubble({
                   isMessageRecent()
                   ? nextMessage
                     ? isNextMessageRecent()
-                      ? "rounded-tr-none rounded-br-none"
-                      : "rounded-tr-none"
-                    : "rounded-tr-none"
+                      ? "rounded-tr-lg rounded-br-lg"
+                      : "rounded-tr-lg"
+                    : "rounded-tr-lg"
                   : isNextMessageRecent()
-                  ? "rounded-br-none"
+                  ? "rounded-br-lg"
                   : null
                 : // OTHERS
                 isMessageRecent()
                 ? nextMessage
                   ? isNextMessageRecent()
-                    ? "rounded-tl-none rounded-bl-none"
-                    : "rounded-tl-none"
-                  : "rounded-tl-none"
+                    ? "rounded-tl-lg rounded-bl-lg"
+                    : "rounded-tl-lg"
+                  : "rounded-tl-lg"
                 : isNextMessageRecent()
-                ? "rounded-bl-none"
+                ? "rounded-bl-lg"
                 : null
             }`}
           >
