@@ -116,7 +116,7 @@ export function FullScreenChatInterfaceComponent() {
   };
 
   return (
-    <div className="flex flex-col h-screen w-screen bg-background text-foreground">
+    <div className="flex flex-col h-svh w-screen bg-background text-foreground">
       <div className="bg-primary p-4 shadow-md">
         <div className="flex items-center gap-4">
           <h2 className="text-2xl font-bold text-primary-foreground">
@@ -171,7 +171,7 @@ export function FullScreenChatInterfaceComponent() {
                 key={String(message.id + i) + message.sender + message.text}
                 className="flex justify-center"
               >
-                <div className={"max-w-full min-w-fit opacity-50"}>
+                <div className={"max-w-full min-w-fit opacity-50 text-center"}>
                   {message.text}
                 </div>
               </div>
