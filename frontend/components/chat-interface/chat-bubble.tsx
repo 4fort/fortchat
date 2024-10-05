@@ -77,7 +77,7 @@ function ChatBubble({
               </span>
             )}
           <div
-            className={`max-w-full min-w-fit w-fit break-all rounded-3xl py-2 px-3 ${
+            className={`max-w-full min-w-fit w-fit break-all rounded-3xl py-2 px-3 z-10 ${
               message.sender === userID
                 ? "bg-primary text-primary-foreground"
                 : "bg-zinc-300 text-secondary-foreground"
@@ -130,7 +130,7 @@ function ChatBubble({
           {/* TODO: put this in the center and make the size normal */}
           <motion.div
             className={cn(
-              "bottom-0 text-xs w-max",
+              "bottom-0 text-xs w-max -z-10",
               message.sender === userID ? "text-right" : "text-left"
             )}
             animate={
