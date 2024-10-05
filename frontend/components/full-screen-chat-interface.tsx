@@ -163,13 +163,8 @@ export function FullScreenChatInterfaceComponent() {
                 userID={userID}
                 isLastMessage={i === messages.length - 1}
                 scrollAreaRef={scrollAreaRef}
-                prevMsgSeconds={
-                  i === 0
-                    ? 0
-                    : new Date(
-                        messages[messages.length - 2].createdAt
-                      ).getSeconds()
-                }
+                prevMessage={i > 0 ? messages[i - 1] : null}
+                nextMessage={i < messages.length - 1 ? messages[i + 1] : null}
               />
             ) : (
               <div

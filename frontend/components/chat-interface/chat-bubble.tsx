@@ -10,7 +10,8 @@ type ChatBubbleProps = {
   message: Message;
   userID: string;
   isLastMessage: boolean;
-  prevMsgSeconds: number;
+  prevMessage: Message | null;
+  nextMessage: Message | null;
   scrollAreaRef: React.RefObject<HTMLDivElement>;
 };
 
@@ -18,16 +19,40 @@ function ChatBubble({
   message,
   userID,
   isLastMessage,
-  prevMsgSeconds,
+  prevMessage,
+  nextMessage,
   scrollAreaRef,
 }: ChatBubbleProps) {
-  const [isHovered, setIsHovered] = useState(isLastMessage);
-  const [senderIsShown, setSenderIsShown] = useState(
-    new Date(message.createdAt).getSeconds() - prevMsgSeconds >= 5
-  );
+  const [isDateShown, setIsDateShown] = useState(isLastMessage);
+
+  // console.log(isSenderShown, isSenderPrevMsgRecent, prevMessage);
+
+  const isMessageFromSender = (_message: Message) => {
+    if (_message) {
+      return _message.sender === message.sender;
+    }
+    return false;
+  };
+
+  const isMessageRecent = () => {
+    if (prevMessage && isMessageFromSender(prevMessage)) {
+      const thisMessageTime = new Date(message.createdAt).getTime();
+      const prevMessageTime = new Date(prevMessage.createdAt).getTime();
+      return thisMessageTime - prevMessageTime <= 5000;
+    }
+  };
+
+  const isNextMessageRecent = () => {
+    if (nextMessage && isMessageFromSender(nextMessage)) {
+      const thisMessageTime = new Date(message.createdAt).getTime();
+      const nextMessageTime = new Date(nextMessage.createdAt).getTime();
+      return nextMessageTime - thisMessageTime <= 5000;
+    }
+    return false;
+  };
 
   useEffect(() => {
-    setIsHovered(isLastMessage);
+    setIsDateShown(isLastMessage);
     return;
   }, [isLastMessage]);
 
@@ -40,23 +65,20 @@ function ChatBubble({
           y: scrollAreaRef.current?.offsetHeight,
         }}
         animate={{ opacity: 1, filter: "blur(0px)", y: 0 }}
-        transition={{ duration: 0.2 }}
+        transition={{ duration: 0.2, ease: "easeInOut" }}
         className={`flex ${
           message.sender === userID ? "justify-end" : "justify-start"
-        } ${senderIsShown ? "mt-4" : "mt-1"}`}
+        } ${!isMessageRecent() && "mt-4"}`}
       >
-        <motion.div
-          className="flex flex-col max-w-[70%] relative"
-          onHoverStart={() => setIsHovered(true)}
-          onHoverEnd={() => {
-            if (isLastMessage) {
-              setIsHovered(true);
-            } else {
-              setIsHovered(false);
-            }
+        <div
+          className={`flex flex-col max-w-[70%] ${
+            message.sender === userID ? "items-end" : "items-start"
+          }`}
+          onClick={() => {
+            isLastMessage ? setIsDateShown(true) : setIsDateShown(!isDateShown);
           }}
         >
-          {message.sender !== userID && senderIsShown && (
+          {message.sender !== userID && !isMessageRecent() && (
             <span
               className={cn(
                 "text-sm opacity-50",
@@ -67,38 +89,61 @@ function ChatBubble({
             </span>
           )}
           <div
-            className={`max-w-full min-w-fit rounded-xl p-3 ${
+            className={`max-w-full min-w-fit w-fit break-all rounded-2xl p-3 ${
               message.sender === userID
                 ? "bg-primary text-primary-foreground"
-                : "bg-secondary text-secondary-foreground"
+                : "bg-zinc-300 text-secondary-foreground"
+            } ${
+              message.sender === userID
+                ? // SENDERS
+                  isMessageRecent()
+                  ? nextMessage
+                    ? isNextMessageRecent()
+                      ? "rounded-tr-none rounded-br-none"
+                      : "rounded-tr-none"
+                    : "rounded-tr-none"
+                  : isNextMessageRecent()
+                  ? "rounded-br-none"
+                  : null
+                : // OTHERS
+                isMessageRecent()
+                ? nextMessage
+                  ? isNextMessageRecent()
+                    ? "rounded-tl-none rounded-bl-none"
+                    : "rounded-tl-none"
+                  : "rounded-tl-none"
+                : isNextMessageRecent()
+                ? "rounded-bl-none"
+                : null
             }`}
           >
             {message.text}
           </div>
+          {/* TODO: put this in the center and make the size normal */}
           <motion.div
             className={cn(
-              "absolute opacity-0 bottom-0 text-xs w-max",
-              message.sender === userID ? "right-0" : "left-0"
+              "bottom-0 text-xs w-max",
+              message.sender === userID ? "text-right" : "text-left"
             )}
             animate={
-              isHovered
+              isDateShown
                 ? {
-                    display: "block",
                     opacity: 0.5,
-                    bottom: "-1.2rem",
+                    marginTop: 0,
                     filter: "blur(0)",
+                    pointerEvents: "auto",
                   }
                 : {
-                    display: "none",
                     opacity: 0,
-                    bottom: 0,
+                    marginTop: -15,
                     filter: "blur(10px)",
+                    pointerEvents: "none",
                   }
             }
           >
             {formatDate(message.createdAt)}
           </motion.div>
-        </motion.div>
+        </div>
       </motion.div>
     </React.Fragment>
   );
